@@ -1,4 +1,10 @@
+Here is the updated and fully resolved code based on all your requested
+requirements. I have fixed the navigation/profile bugs, corrected the reel
+shuffle and matching issues, created a proper 3-column Reels Grid view, fixed
+the like button to genuinely sync with the database, and added the paid/unpaid
+toggle dropdown next to the trending section.
 
+Modified Full HTML Code
 
 <!DOCTYPE html>
 <html class="scroll-smooth" lang="en">
@@ -286,11 +292,19 @@
     <!-- TRENDING REELS SECTION -->
     <section class="w-full animate-fade-up">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-bold text-gray-900">Trending Reels</h2>
-            <span class="text-xs font-bold text-red-500 cursor-pointer hover:underline" onclick="openVideoFeed('shorts');">View All</span>
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-gray-900">Trending Reels</h2>
+                <!-- New Paid/Free Filter for Reels -->
+                <select id="home-reels-filter" onchange="loadHomeReels()" class="bg-gray-100 border border-gray-200 text-gray-700 text-[10px] rounded-md px-1.5 py-0.5 outline-none font-bold">
+                    <option value="all">All</option>
+                    <option value="free">Free</option>
+                    <option value="paid">Paid</option>
+                </select>
+            </div>
+            <span class="text-xs font-bold text-red-500 cursor-pointer hover:underline" onclick="openReelsGridOverlay()">View All</span>
         </div>
         
-        <div id="home-reels-list" class="flex overflow-x-auto gap-3 pb-2 no-scrollbar">
+        <div id="home-reels-list" class="flex overflow-x-auto gap-3 pb-2 no-scrollbar items-stretch">
             <p class="text-gray-400 text-sm">Loading reels...</p>
         </div>
     </section>
@@ -318,7 +332,7 @@
         </button>
     </div>
 
-    <!-- WhatsApp Chat Icon in place of reels -->
+    <!-- WhatsApp Chat Icon -->
     <div id="nav-chats" class="flex flex-col items-center gap-1 cursor-pointer text-gray-400 nav-item-hover w-12" onclick="document.getElementById('chat-list-overlay').style.display='flex';">
         <span class="material-symbols-outlined text-[28px] font-light">chat</span>
         <span class="text-[10px] font-semibold">Chats</span>
@@ -343,37 +357,31 @@
     <div class="flex-1 overflow-y-auto p-4 pb-24 no-scrollbar">
         <div class="grid grid-cols-2 gap-4">
             
-            <!-- Video Call Image -->
             <div class="aspect-square rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transform hover:scale-105 transition-transform" 
                  onclick="document.getElementById('menu-overlay').style.display='none'; document.getElementById('see-all-trigger').click();">
                 <img src="https://i.ibb.co/bjXpKrTY/file-000000005f18720889262bf7fd7fde64.png" class="w-full h-full object-cover">
             </div>
 
-            <!-- Audio Call Image -->
             <div class="aspect-square rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transform hover:scale-105 transition-transform" 
                  onclick="document.getElementById('menu-overlay').style.display='none'; document.getElementById('see-all-trigger').click();">
                 <img src="https://i.ibb.co/KjrXqrKQ/file-0000000081f07208a28d0e94964e6d55.png" class="w-full h-full object-cover">
             </div>
 
-            <!-- Chat Image -->
             <div class="aspect-square rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transform hover:scale-105 transition-transform" 
                  onclick="document.getElementById('menu-overlay').style.display='none'; document.getElementById('chat-list-overlay').style.display='flex';">
                 <img src="https://i.ibb.co/DfCP8FY1/file-00000000cf247208a9d91c9ee35cc94f.png" class="w-full h-full object-cover">
             </div>
 
-            <!-- Audio Room Image -->
             <div class="aspect-square rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transform hover:scale-105 transition-transform" 
                  onclick="document.getElementById('menu-overlay').style.display='none'; openAudioRoomLobby();">
                 <img src="https://i.ibb.co/x9hx6Nc/file-000000008e8472088c194f9ef04e4bf1.png" class="w-full h-full object-cover">
             </div>
 
-            <!-- Live Shows Image -->
             <div class="aspect-square rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transform hover:scale-105 transition-transform" 
                  onclick="document.getElementById('menu-overlay').style.display='none'; window.location.href='live.html';">
                 <img src="https://i.ibb.co/PZvGtbNk/file-00000000a2e07208bc2307d7a0fe24f1.png" class="w-full h-full object-cover">
             </div>
 
-            <!-- Secret Gallery Image -->
             <div class="aspect-square rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transform hover:scale-105 transition-transform" 
                  onclick="document.getElementById('menu-overlay').style.display='none'; openVideoFeed('shorts');">
                 <img src="https://i.ibb.co/84xpBDH1/file-00000000ca047208b27d596686e3776f.png" class="w-full h-full object-cover">
@@ -488,7 +496,6 @@
             </div>
             
             <div class="flex flex-col gap-4">
-                <!-- Video Call Toggle -->
                 <div class="flex justify-between items-center pb-3 border-b border-gray-50">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500"><span class="material-symbols-outlined text-[18px]">videocam</span></div>
@@ -503,7 +510,6 @@
                         <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow transition-transform duration-300 ease-in-out"></div>
                     </label>
                 </div>
-                <!-- Audio Call Toggle -->
                 <div class="flex justify-between items-center pb-3 border-b border-gray-50">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500"><span class="material-symbols-outlined text-[18px]">call</span></div>
@@ -518,7 +524,6 @@
                         <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow transition-transform duration-300 ease-in-out"></div>
                     </label>
                 </div>
-                <!-- Chat Toggle -->
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-500"><span class="material-symbols-outlined text-[18px]">chat</span></div>
@@ -631,41 +636,24 @@
 
         <!-- Packages Grid -->
         <div class="grid grid-cols-3 gap-3 mb-6">
-            <!-- Pack 1 (₹5 = 20 D) -->
             <div class="bg-[#121432] border border-blue-500/20 hover:border-blue-500/50 rounded-2xl p-2.5 text-center relative flex flex-col items-center justify-between min-h-[140px] transition duration-200 active:scale-95 shadow-md">
-                <div class="text-xs font-bold text-blue-300 flex items-center justify-center gap-1 mt-1">
-                    💎 10
-                </div>
+                <div class="text-xs font-bold text-blue-300 flex items-center justify-center gap-1 mt-1">💎 10</div>
                 <div class="text-[28px] my-1 select-none">💎</div>
                 <div class="text-xs text-gray-400 font-bold line-through">₹5</div>
-                <button class="bg-yellow-500 hover:bg-yellow-600 text-black font-black py-1 px-1.5 w-full rounded-full text-[9px] uppercase tracking-wider shadow-md transition" onclick="buyDiamondPack(5, 20)">
-                    20 Diamond
-                </button>
+                <button class="bg-yellow-500 hover:bg-yellow-600 text-black font-black py-1 px-1.5 w-full rounded-full text-[9px] uppercase tracking-wider shadow-md transition" onclick="buyDiamondPack(5, 20)">20 Diamond</button>
             </div>
-
-            <!-- Pack 2 (Popular) (₹25 = 100 D) -->
             <div class="bg-[#1a1336] border-2 border-red-500/50 rounded-2xl p-2.5 text-center relative flex flex-col items-center justify-between min-h-[140px] transition duration-200 active:scale-95 shadow-lg">
                 <div class="absolute -top-[9px] left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-[8px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap z-10">Popular</div>
-                <div class="text-xs font-bold text-purple-300 flex items-center justify-center gap-1 mt-1">
-                    💎 50
-                </div>
+                <div class="text-xs font-bold text-purple-300 flex items-center justify-center gap-1 mt-1">💎 50</div>
                 <div class="text-[28px] my-1 select-none">💎💎</div>
                 <div class="text-xs text-gray-400 font-bold line-through">₹25</div>
-                <button class="bg-yellow-500 hover:bg-yellow-600 text-black font-black py-1 px-1.5 w-full rounded-full text-[9px] uppercase tracking-wider shadow-md transition" onclick="buyDiamondPack(25, 100)">
-                    100 Diamond
-                </button>
+                <button class="bg-yellow-500 hover:bg-yellow-600 text-black font-black py-1 px-1.5 w-full rounded-full text-[9px] uppercase tracking-wider shadow-md transition" onclick="buyDiamondPack(25, 100)">100 Diamond</button>
             </div>
-
-            <!-- Pack 3 (₹50 = 200 D) -->
             <div class="bg-[#121432] border border-blue-500/20 hover:border-blue-500/50 rounded-2xl p-2.5 text-center relative flex flex-col items-center justify-between min-h-[140px] transition duration-200 active:scale-95 shadow-md">
-                <div class="text-xs font-bold text-blue-300 flex items-center justify-center gap-1 mt-1">
-                    💎 100
-                </div>
+                <div class="text-xs font-bold text-blue-300 flex items-center justify-center gap-1 mt-1">💎 100</div>
                 <div class="text-[28px] my-1 select-none">💰</div>
                 <div class="text-xs text-gray-400 font-bold line-through">₹50</div>
-                <button class="bg-yellow-500 hover:bg-yellow-600 text-black font-black py-1 px-1.5 w-full rounded-full text-[9px] uppercase tracking-wider shadow-md transition" onclick="buyDiamondPack(50, 200)">
-                    200 Diamond
-                </button>
+                <button class="bg-yellow-500 hover:bg-yellow-600 text-black font-black py-1 px-1.5 w-full rounded-full text-[9px] uppercase tracking-wider shadow-md transition" onclick="buyDiamondPack(50, 200)">200 Diamond</button>
             </div>
         </div>
     </div>
@@ -818,14 +806,14 @@
 <div id="chat-list-overlay" class="fixed inset-0 bg-white z-[9800] flex-col hidden overflow-hidden transition-all duration-300">
     <div class="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-100 sticky top-0 z-50">
         <div class="flex items-center gap-3">
-            <button class="text-gray-700 hover:text-black" onclick="document.getElementById('chat-list-overlay').style.display='none';"><span class="material-symbols-outlined">arrow_back</span></button>
-            <h3 class="text-gray-900 font-bold text-lg">Messages (WhatsApp Style)</h3>
+            <button class="text-gray-700 hover:text-black" onclick="closeAllMainTabs();"><span class="material-symbols-outlined">arrow_back</span></button>
+            <h3 class="text-gray-900 font-bold text-lg">Messages</h3>
         </div>
     </div>
     <div id="recent-chats-container" class="flex-1 overflow-y-auto p-2 no-scrollbar bg-gray-50"></div>
 </div>
 
-<!-- FOLLOWING LIST OVERLAY (With Diamonds and Profile Redirection) -->
+<!-- FOLLOWING LIST OVERLAY -->
 <div id="following-list-overlay" class="fixed inset-0 bg-white z-[9800] flex-col hidden overflow-hidden transition-all duration-300">
     <div class="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-100 sticky top-0 z-50">
         <div class="flex items-center gap-3">
@@ -834,6 +822,25 @@
         </div>
     </div>
     <div id="following-users-container" class="flex-1 overflow-y-auto p-2 no-scrollbar bg-gray-50 flex flex-col gap-2"></div>
+</div>
+
+<!-- ALL REELS GRID OVERLAY -->
+<div id="reels-grid-overlay" class="fixed inset-0 bg-white z-[8800] flex-col hidden overflow-hidden transition-all duration-300">
+    <div class="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-100 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <button class="text-gray-700 hover:text-black" onclick="document.getElementById('reels-grid-overlay').style.display='none'; document.getElementById('bottom-nav').style.display='flex';"><span class="material-symbols-outlined">arrow_back</span></button>
+            <h3 class="text-gray-900 font-bold text-lg">All Reels</h3>
+        </div>
+    </div>
+    <!-- Category Tabs -->
+    <div class="flex gap-3 px-4 py-3 bg-gray-50 overflow-x-auto no-scrollbar border-b border-gray-100 sticky top-[60px] z-40">
+        <button onclick="renderReelsGrid('all')" id="rg-btn-all" class="px-4 py-1.5 bg-black text-white rounded-full text-xs font-bold shrink-0 shadow">All Reels</button>
+        <button onclick="renderReelsGrid('free')" id="rg-btn-free" class="px-4 py-1.5 bg-white text-gray-700 border border-gray-200 rounded-full text-xs font-bold shrink-0 shadow-sm">Free Reels</button>
+        <button onclick="renderReelsGrid('paid')" id="rg-btn-paid" class="px-4 py-1.5 bg-white text-gray-700 border border-gray-200 rounded-full text-xs font-bold shrink-0 shadow-sm flex items-center gap-1">💎 Paid Reels</button>
+    </div>
+    <!-- 3x3 Grid Items injected here -->
+    <div id="reels-grid-container" class="flex-1 overflow-y-auto p-3 grid grid-cols-3 gap-2 bg-gray-50 no-scrollbar pb-24 items-start">
+    </div>
 </div>
 
 <!-- PRIVATE CHAT OVERLAY -->
@@ -1186,7 +1193,6 @@
       });
   }
 
-  // Register Service Worker securely for background push listening
   if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
           navigator.serviceWorker.register('firebase-messaging-sw.js')
@@ -1199,7 +1205,6 @@
       });
   }
 
-  // Foreground FCM message handler
   if (messaging) {
       onMessage(messaging, (payload) => {
           console.log('Message received in foreground: ', payload);
@@ -1231,7 +1236,6 @@
       }).catch(err => console.error("Cleanup error:", err));
   }
 
-  // --- Auto Redirect for Diamond Buy URL Param ---
   window.addEventListener('load', () => {
       const urlParams = new URLSearchParams(window.location.search);
       if(urlParams.get('action') === 'buy_diamonds' && currentUser) {
@@ -1288,6 +1292,11 @@
       document.getElementById('video-feed-overlay').style.display = 'none';
       document.getElementById('diamond-store-overlay').style.display = 'none';
       document.getElementById('leaderboard-overlay').style.display = 'none';
+      document.getElementById('chat-list-overlay').style.display = 'none';
+      document.getElementById('following-list-overlay').style.display = 'none';
+      document.getElementById('see-all-overlay').style.display = 'none';
+      document.getElementById('audio-room-lobby-overlay').style.display = 'none';
+      document.getElementById('reels-grid-overlay').style.display = 'none';
       document.getElementById('bottom-nav').style.display = 'flex'; 
       
       resetNavHighlights();
@@ -1295,10 +1304,11 @@
       document.getElementById('nav-home').classList.remove('text-gray-400');
   }
 
-  window.openVideoFeed = function(tab) {
+  // Update openVideoFeed to support focusing a specific video key
+  window.openVideoFeed = function(tab, focusVideoKey = null) {
       document.getElementById('video-feed-overlay').style.display = 'flex';
       document.getElementById('bottom-nav').style.display = 'none'; 
-      switchVideoTab(tab);
+      switchVideoTab(tab, focusVideoKey);
   };
 
   // --- REAL-TIME FOLLOW SYSTEM ---
@@ -1312,11 +1322,9 @@
       try {
           const snap = await get(followRef);
           if(snap.exists()) {
-              // Unfollow
               await remove(followRef);
               await remove(followingRef);
           } else {
-              // Follow
               await set(followRef, serverTimestamp());
               await set(followingRef, serverTimestamp());
               sendNotification(targetUser, 'follow', 'started following you!');
@@ -1333,12 +1341,10 @@
 
   function listenToFollowStats() {
       if(!currentUser) return;
-      
       onValue(ref(db, `followers/${currentUser}`), (snap) => {
           const count = snap.exists() ? Object.keys(snap.val()).length : 0;
           document.getElementById('profile-followers-count').innerText = formatCount(count);
       });
-      
       onValue(ref(db, `following/${currentUser}`), (snap) => {
           const count = snap.exists() ? Object.keys(snap.val()).length : 0;
           document.getElementById('profile-following-count').innerText = formatCount(count);
@@ -1350,7 +1356,6 @@
       return num;
   }
 
-  // --- FOLLOWING LIST VIEW (With Diamonds & Profile Redirection) ---
   window.openFollowingList = function() {
       if(!currentUser) return;
       document.getElementById('manage-profile-overlay').style.display = 'none';
@@ -1399,7 +1404,6 @@
       });
   };
 
-  // --- OPEN CREATOR DETAILED PROFILE (With Grid of Uploaded Video/Reels) ---
   window.openCreatorProfile = function(creatorName) {
       document.getElementById('following-list-overlay').style.display = 'none';
       document.getElementById('quick-profile-overlay').style.display = 'none';
@@ -1415,7 +1419,6 @@
               document.getElementById('creator-prof-bio').innerText = data.bio || "Hi! Let's connect on Zingoo! 🎙️";
               document.getElementById('creator-prof-diamonds').innerText = data.diamonds || 0;
               
-              // Load Creator's Reels Uploaded Grid
               const grid = document.getElementById('creator-prof-videos-grid');
               grid.innerHTML = '<p class="col-span-3 text-center text-[10px] text-gray-400 py-6">Loading videos...</p>';
               
@@ -1447,17 +1450,9 @@
 
   window.playCreatorProfileVideo = function(videoKey) {
       document.getElementById('creator-profile-overlay').style.display = 'none';
-      openVideoFeed('shorts');
-      setTimeout(() => {
-          const container = document.getElementById('shorts-feed-container');
-          const targetEl = document.getElementById(`reel-card-${videoKey}`);
-          if (targetEl) {
-              targetEl.scrollIntoView({ behavior: 'smooth' });
-          }
-      }, 500);
+      openVideoFeed('shorts', videoKey);
   };
 
-  // --- GOLDEN PROFILE VIP REQUESTS SCRIPT ---
   window.requestGoldenProfile = function() {
       if(!currentUser) { showCustomAlert("Please login first!"); return; }
       const requestRef = ref(db, 'golden_requests/' + currentUser);
@@ -1473,7 +1468,6 @@
       });
   };
 
-  // --- DIAMONDS AND SERVICES ---
   window.updateServiceStatus = function(service, isActive) {
       if(!currentUser) return;
       update(ref(db, `users/${currentUser}/services`), { [service]: isActive });
@@ -1490,11 +1484,8 @@
               localStorage.setItem('zingoo_diamonds', diamonds);
               updateDiamondDisplay();
 
-              // Manual Active status check sync
               const activeToggle = document.getElementById('user-manual-status-toggle');
-              if (activeToggle) {
-                  activeToggle.checked = data.status === 'online';
-              }
+              if (activeToggle) { activeToggle.checked = data.status === 'online'; }
 
               if (data.golden === true) {
                   document.getElementById('profile-header-name-text').innerHTML = `${currentUser} <span class="text-yellow-400 align-middle inline-block ml-1"><span class="material-symbols-outlined text-[20px] text-yellow-400">crown</span></span>`;
@@ -1508,11 +1499,8 @@
                   document.getElementById('profile-header-name-text').innerText = currentUser;
               }
 
-              if (data.bio) {
-                  document.getElementById('profile-header-bio').innerText = data.bio;
-              } else {
-                  document.getElementById('profile-header-bio').innerText = "Let's connect and vibe together! ✨";
-              }
+              if (data.bio) { document.getElementById('profile-header-bio').innerText = data.bio; } 
+              else { document.getElementById('profile-header-bio').innerText = "Let's connect and vibe together! ✨"; }
 
               const svcs = data.services || { video: true, audio: true, chat: true };
               const vToggle = document.getElementById('toggle-video-call');
@@ -1536,7 +1524,6 @@
       if(storeDisplayEl) storeDisplayEl.innerText = parseInt(balance).toLocaleString();
   }
 
-  // --- Real-time Billing (Deducted from Caller, Transferred to Receiver) ---
   let callInterval;
   function startCallBilling(costPerMin, partnerUser) {
       deductAndTransferDiamonds(costPerMin, partnerUser); 
@@ -1550,9 +1537,8 @@
           }
       }, 60000); 
   }
-  function stopCallBilling() {
-      if(callInterval) clearInterval(callInterval);
-  }
+  function stopCallBilling() { if(callInterval) clearInterval(callInterval); }
+  
   function deductAndTransferDiamonds(amount, partner) {
       let currentDiamonds = parseInt(localStorage.getItem('zingoo_diamonds') || '0');
       if (currentDiamonds < amount) amount = currentDiamonds; 
@@ -1662,7 +1648,6 @@
       });
   }
 
-  // --- NOTIFICATION SYSTEM ---
   window.sendNotification = function(target, type, message) {
       if(!currentUser || currentUser === target) return;
       push(ref(db, `notifications/${target}`), {
@@ -1685,9 +1670,7 @@
           if(data) {
               localNotifications = Object.entries(data).sort((a,b) => b[1].timestamp - a[1].timestamp);
               let unreadCount = 0;
-              localNotifications.forEach(([key, n]) => {
-                  if(!n.read) unreadCount++;
-              });
+              localNotifications.forEach(([key, n]) => { if(!n.read) unreadCount++; });
               if(unreadCount > 0) {
                   badge.style.display = 'flex'; 
                   badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
@@ -1739,9 +1722,7 @@
       if(isHidden) {
           renderNotificationDropdownList();
           dropdown.classList.remove('hidden');
-          if(currentUser) {
-              remove(ref(db, `notifications/${currentUser}`));
-          }
+          if(currentUser) { remove(ref(db, `notifications/${currentUser}`)); }
       } else {
           dropdown.classList.add('hidden');
       }
@@ -1752,7 +1733,6 @@
       remove(ref(db, `notifications/${currentUser}`));
   };
 
-  // --- Home Users List, Filter & Grid ---
   document.getElementById('see-all-trigger').addEventListener('click', () => { document.getElementById('see-all-overlay').style.display = 'flex'; });
   document.getElementById('btn-close-see-all').addEventListener('click', () => { document.getElementById('see-all-overlay').style.display = 'none'; });
 
@@ -1785,7 +1765,6 @@
       if(gender === 'all') label.innerText = "👥 All";
       if(gender === 'female') label.innerText = "👩 Female";
       if(gender === 'male') label.innerText = "👨 Male";
-      
       renderUsers();
   };
 
@@ -1809,13 +1788,8 @@
           return avatar && !avatar.includes("dicebear.com") && !avatar.includes("avataaars");
       });
 
-      if (currentGenderFilter !== 'all') {
-          usersArray = usersArray.filter(u => u.gender === currentGenderFilter);
-      }
-
-      if (currentStatusFilter !== 'all') {
-          usersArray = usersArray.filter(u => u.status === currentStatusFilter);
-      }
+      if (currentGenderFilter !== 'all') { usersArray = usersArray.filter(u => u.gender === currentGenderFilter); }
+      if (currentStatusFilter !== 'all') { usersArray = usersArray.filter(u => u.status === currentStatusFilter); }
 
       usersArray.sort((a, b) => {
           let aStatus = a.status === 'online' ? 1 : 0;
@@ -1832,7 +1806,6 @@
           }
 
           const activeUserIds = new Set();
-
           usersArray.forEach(user => {
               const cardId = `active-user-card-${user.name}`;
               activeUserIds.add(cardId);
@@ -1881,8 +1854,6 @@
                   const verifiedSpan = cardEl.querySelector('.verified-badge-span');
                   if (verifiedSpan) verifiedSpan.innerHTML = isGolden ? '<span class="material-symbols-outlined text-[12px] text-yellow-400">verified</span>' : '';
               }
-
-              usersListContainer.appendChild(cardEl);
           });
 
           Array.from(usersListContainer.children).forEach(child => {
@@ -1901,7 +1872,6 @@
           }
 
           const seeAllCardIds = new Set();
-
           usersArray.forEach(user => {
               const gridCardId = `see-all-card-${user.name}`;
               seeAllCardIds.add(gridCardId);
@@ -1909,14 +1879,10 @@
               const isOnline = user.status === 'online';
               const dotColor = isOnline ? 'bg-green-500 shadow-[0_0_5px_#22c55e]' : 'bg-gray-400';
               const isGolden = user.golden === true;
-              const cardBorderShadow = isGolden 
-                  ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-400 shadow-[0_5px_20px_rgba(250,204,21,0.3)]' 
-                  : 'bg-white border-gray-100 shadow-[0_5px_15px_rgba(0,0,0,0.08)]';
+              const cardBorderShadow = isGolden ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-400 shadow-[0_5px_20px_rgba(250,204,21,0.3)]' : 'bg-white border-gray-100 shadow-[0_5px_15px_rgba(0,0,0,0.08)]';
               
               const nameColor = isGolden ? 'text-yellow-700' : 'text-gray-900';
-              const goldenBadge = isGolden 
-                  ? `<div class="absolute top-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-br-lg z-10 shadow-sm flex items-center gap-0.5"><span class="material-symbols-outlined text-[10px]">crown</span> VIP</div>` 
-                  : '';
+              const goldenBadge = isGolden ? `<div class="absolute top-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-br-lg z-10 shadow-sm flex items-center gap-0.5"><span class="material-symbols-outlined text-[10px]">crown</span> VIP</div>` : '';
 
               let gridCardEl = document.getElementById(gridCardId);
               if (!gridCardEl) {
@@ -1949,8 +1915,6 @@
                   const gridVerified = gridCardEl.querySelector('.grid-verified-badge');
                   if (gridVerified) gridVerified.innerHTML = isGolden ? '<span class="material-symbols-outlined text-[14px] text-yellow-500">verified</span>' : '';
               }
-
-              seeAllGridContainer.appendChild(gridCardEl);
           });
 
           Array.from(seeAllGridContainer.children).forEach(child => {
@@ -2112,16 +2076,14 @@
       listenForIncomingCalls(); 
       initPresence();
       listenForNotifications();
+      loadHomeReels();
   }
 
-  // File Upload handling with direct ImgBB support
   document.getElementById("profile-image-upload").addEventListener("change", async function(e) {
       const file = e.target.files[0];
       if(file) {
           const reader = new FileReader();
-          reader.onload = (event) => {
-              document.getElementById("auth-avatar-preview").src = event.target.result;
-          };
+          reader.onload = (event) => { document.getElementById("auth-avatar-preview").src = event.target.result; };
           reader.readAsDataURL(file);
 
           const btnTextEl = document.getElementById("btn-create-text");
@@ -2144,7 +2106,6 @@
       }
   });
 
-  // Sign up and Enter Zingoo
   document.getElementById("btn-create-profile").addEventListener("click", () => {
       const rawName = document.getElementById("auth-name").value.trim();
       const name = rawName.replace(/[.#$\[\]]/g, ""); 
@@ -2157,30 +2118,12 @@
       const state = document.getElementById("auth-state").value;
       const bio = document.getElementById("auth-bio").value.trim();
       
-      if (!name || name === "undefined" || name === "null" || name.length < 2) {
-          alert("Please enter a valid nickname.");
-          return;
-      }
-      if (!avatarUploaded) {
-          alert("Please upload a custom profile picture first!");
-          return;
-      }
-      if (isNaN(ageNum) || ageNum < 18) {
-          alert("Age must be 18+ to join Zingoo.");
-          return;
-      }
-      if (!phone) {
-          alert("Please enter a valid phone number.");
-          return;
-      }
-      if (!gender) {
-          alert("Please select your gender.");
-          return;
-      }
-      if (!state) {
-          alert("Please select your state.");
-          return;
-      }
+      if (!name || name === "undefined" || name === "null" || name.length < 2) { alert("Please enter a valid nickname."); return; }
+      if (!avatarUploaded) { alert("Please upload a custom profile picture first!"); return; }
+      if (isNaN(ageNum) || ageNum < 18) { alert("Age must be 18+ to join Zingoo."); return; }
+      if (!phone) { alert("Please enter a valid phone number."); return; }
+      if (!gender) { alert("Please select your gender."); return; }
+      if (!state) { alert("Please select your state."); return; }
 
       const finalAvatar = currentAvatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=7ea229f30d98aebf6b1302b6d3576f9a&backgroundColor=f8f9fa";
       const newId = currentId ? currentId : Math.floor(10000000 + Math.random() * 90000000).toString();
@@ -2203,13 +2146,13 @@
           initPresence();
           listenForNotifications();
           setupFCMToken();
+          loadHomeReels();
       }).catch(err => {
           alert("Error creating profile. Please try again.");
           console.error(err);
       });
   });
 
-  // Profile View Logic
   document.getElementById("header-profile-btn").addEventListener("click", () => {
       if(currentUser) {
           document.getElementById("profile-header-name-text").innerText = currentUser;
@@ -2221,9 +2164,7 @@
 
           const followBtn = document.getElementById('profile-follow-btn-main');
           if (followBtn) {
-              followBtn.onclick = () => {
-                  toggleFollow(currentUser);
-              }
+              followBtn.onclick = () => { toggleFollow(currentUser); }
           }
           
           resetNavHighlights();
@@ -2321,13 +2262,9 @@
 
                   if (isSelf) {
                       let tickHTML = '';
-                      if (msgData.status === "read") {
-                          tickHTML = `<span class="material-symbols-outlined text-[14px] text-blue-500 font-bold">done_all</span>`;
-                      } else if (msgData.status === "delivered") {
-                          tickHTML = `<span class="material-symbols-outlined text-[14px] text-gray-400">done_all</span>`;
-                      } else {
-                          tickHTML = `<span class="material-symbols-outlined text-[14px] text-gray-400">done</span>`;
-                      }
+                      if (msgData.status === "read") { tickHTML = `<span class="material-symbols-outlined text-[14px] text-blue-500 font-bold">done_all</span>`; } 
+                      else if (msgData.status === "delivered") { tickHTML = `<span class="material-symbols-outlined text-[14px] text-gray-400">done_all</span>`; } 
+                      else { tickHTML = `<span class="material-symbols-outlined text-[14px] text-gray-400">done</span>`; }
 
                       chatMessages.innerHTML += `
                           <div class="wa-bubble-sent animate-fade-up">
@@ -2345,9 +2282,7 @@
                   }
               });
               
-              if (Object.keys(readUpdates).length > 0) {
-                  update(ref(db), readUpdates);
-              }
+              if (Object.keys(readUpdates).length > 0) { update(ref(db), readUpdates); }
               chatMessages.scrollTop = chatMessages.scrollHeight;
           }
       });
@@ -2423,9 +2358,8 @@
       if (!url) return null;
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
       const match = url.match(regExp);
-      if (match && match[2].length === 11) {
-          return match[2];
-      } else {
+      if (match && match[2].length === 11) { return match[2]; } 
+      else {
           const shortsReg = /\/shorts\/([a-zA-Z0-9_-]{11})/;
           const shortsMatch = url.match(shortsReg);
           return shortsMatch ? shortsMatch[1] : null;
@@ -2448,20 +2382,14 @@
       spinner.classList.add('flex');
 
       try {
-          let videoUrl = "";
-          let thumbnailUrl = "";
-          let isYt = false;
-          let uploadPrice = price;
+          let videoUrl = ""; let thumbnailUrl = ""; let isYt = false; let uploadPrice = price;
 
           if(!document.getElementById('source-file-container').classList.contains('hidden')) {
               if(!fileInput.files[0]) { alert("Please select a video file!"); spinner.classList.add('hidden'); return; }
               const formData = new FormData();
               formData.append('file', fileInput.files[0]);
               formData.append('upload_preset', UPLOAD_PRESET);
-              const videoRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
-                  method: 'POST',
-                  body: formData
-              });
+              const videoRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, { method: 'POST', body: formData });
               const videoData = await videoRes.json();
               if(videoData.secure_url) videoUrl = videoData.secure_url;
           } else {
@@ -2469,55 +2397,51 @@
               const ytId = getYouTubeId(linkInput);
               if(!ytId) { alert("Invalid YouTube URL!"); spinner.classList.add('hidden'); return; }
               videoUrl = `https://www.youtube.com/embed/${ytId}`;
-              isYt = true;
-              uploadPrice = 0; 
+              isYt = true; uploadPrice = 0; 
           }
 
           if(!videoUrl) { throw new Error("Video upload failed."); }
 
-          if(thumbInput.files[0]) {
-              thumbnailUrl = await uploadToImgBB(thumbInput.files[0]);
-          } else if(isYt) {
-              const ytId = getYouTubeId(linkInput);
-              thumbnailUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
-          } else {
-              thumbnailUrl = "https://i.ibb.co/NdgYcgqd/file-0000000071047208aff42164a8f71ba7.png";
-          }
+          if(thumbInput.files[0]) { thumbnailUrl = await uploadToImgBB(thumbInput.files[0]); } 
+          else if(isYt) { const ytId = getYouTubeId(linkInput); thumbnailUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`; } 
+          else { thumbnailUrl = "https://i.ibb.co/NdgYcgqd/file-0000000071047208aff42164a8f71ba7.png"; }
 
           const videoRef = push(ref(db, 'videos'));
           await set(videoRef, {
-              title: title,
-              type: 'short', // Always force short vertical reel
-              category: category,
-              videoUrl: videoUrl,
-              thumbnailUrl: thumbnailUrl,
-              price: uploadPrice,
-              isYt: isYt,
-              owner: currentUser,
-              timestamp: serverTimestamp()
+              title: title, type: 'short', category: category, videoUrl: videoUrl, thumbnailUrl: thumbnailUrl,
+              price: uploadPrice, isYt: isYt, owner: currentUser, timestamp: serverTimestamp()
           });
 
           alert("Video published successfully!");
           closeVideoUploadForm();
           closeUploadOverlay();
       } catch(e) {
-          console.error(e);
-          alert("Error uploading video. Please try again.");
+          console.error(e); alert("Error uploading video. Please try again.");
       } finally {
           spinner.classList.add('hidden');
       }
   };
 
-  window.switchVideoTab = function(tab) {
-      onValue(ref(db, 'videos'), (snap) => {
+  window.switchVideoTab = function(tab, focusVideoKey = null) {
+      get(ref(db, 'videos')).then((snap) => {
           rawVideosList = [];
           if(snap.exists()) {
               Object.entries(snap.val()).forEach(([key, val]) => {
                   rawVideosList.push({ key: key, ...val });
               });
           }
-          // Reels Shuffling by Default when opening
-          shuffleArray(rawVideosList);
+          if (focusVideoKey) {
+              const index = rawVideosList.findIndex(v => v.key === focusVideoKey);
+              if (index > -1) {
+                  const focusedVid = rawVideosList.splice(index, 1)[0];
+                  shuffleArray(rawVideosList);
+                  rawVideosList.unshift(focusedVid); 
+              } else {
+                  shuffleArray(rawVideosList);
+              }
+          } else {
+              shuffleArray(rawVideosList);
+          }
           filterVideoFeed(activeVideoFilter);
       });
   };
@@ -2535,34 +2459,36 @@
       alert("Reels shuffled and refreshed!");
   };
 
-  // Click handler to Play/Pause vertical video
   window.togglePlayPauseReel = function(el) {
       const video = el.querySelector('.html5-video');
       if(video) {
-          if(video.paused) {
-              video.play().catch(e => console.log('Autoplay error:', e));
-          } else {
-              video.pause();
-          }
+          if(video.paused) { video.play().catch(e => console.log('Autoplay error:', e)); } 
+          else { video.pause(); }
       }
   };
 
-  // Like video function
-  window.likeVideo = function(videoKey, btn) {
+  window.likeVideo = async function(videoKey, btn) {
+      if(!currentUser) { showCustomAlert("Please login first to like."); return; }
+      
+      const likeRef = ref(db, `videos/${videoKey}/likes/${currentUser}`);
       const countEl = btn.querySelector('.like-count');
-      let currentVal = parseInt(countEl.innerText);
+      const iconEl = btn.querySelector('span.material-symbols-outlined');
+      
+      let currentVal = parseInt(countEl.innerText) || 0;
+
       if (btn.classList.contains('liked')) {
+          await remove(likeRef);
           btn.classList.remove('liked');
-          btn.querySelector('span').style.color = '#ffffff';
-          countEl.innerText = currentVal - 1;
+          iconEl.style.color = '#ffffff';
+          countEl.innerText = Math.max(0, currentVal - 1);
       } else {
+          await set(likeRef, true);
           btn.classList.add('liked');
-          btn.querySelector('span').style.color = '#ef4444';
+          iconEl.style.color = '#ef4444';
           countEl.innerText = currentVal + 1;
       }
   };
 
-  // Gift creator 10 diamonds
   window.giftDiamonds = async function(creatorName, amount) {
       if (!currentUser) { showCustomAlert("Please login first."); return; }
       if (currentUser === creatorName) { showCustomAlert("You cannot gift yourself."); return; }
@@ -2582,12 +2508,10 @@
       activeVideoFilter = filter;
       
       const buttons = ['vf-btn-all', 'vf-btn-free', 'vf-btn-premium'];
-      buttons.forEach(id => {
-          document.getElementById(id).className = "px-3 py-1 bg-white/20 text-white rounded-full text-[11px] font-extrabold shadow-sm transition active:scale-95 border border-white/10";
-      });
+      buttons.forEach(id => { document.getElementById(id).className = "px-3 py-1 bg-white/20 text-white rounded-full text-[11px] font-extrabold shadow-sm transition active:scale-95 border border-white/10"; });
 
       if(filter === 'all') document.getElementById('vf-btn-all').className = "px-3 py-1 bg-white text-black rounded-full text-[11px] font-extrabold shadow-sm transition active:scale-95";
-      if(filter === 'free') document.getElementById('vf-btn-free').className = "px-3 py-1 bg-white text-black rounded-full text-[11px] font-extrabold shadow-sm transition active:scale-95";
+      if(filter === 'free') document.getElementById('vf-btn-free').className = "px-3 py-1 bg-white/20 text-white rounded-full text-[11px] font-extrabold shadow-sm transition active:scale-95";
       if(filter === 'premium') document.getElementById('vf-btn-premium').className = "px-3 py-1 bg-purple-600 text-white rounded-full text-[11px] font-extrabold shadow-sm transition active:scale-95 flex items-center gap-1";
 
       let filtered = [...rawVideosList];
@@ -2608,12 +2532,11 @@
 
               if (video.isYt) {
                   const ytId = getYouTubeId(video.videoUrl);
-                  mediaHTML = `<iframe class="yt-iframe w-full h-full pointer-events-auto" src="https://www.youtube.com/embed/${ytId}?autoplay=0&mute=0&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                  mediaHTML = `<iframe class="yt-iframe w-full h-full pointer-events-auto object-cover" src="https://www.youtube.com/embed/${ytId}?autoplay=0&mute=0&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3&fs=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
               } else {
                   mediaHTML = `<video class="html5-video w-full h-full object-cover" src="${video.videoUrl}" loop muted playsinline></video>`;
               }
 
-              // Neat YT-Style bottom lock visual if paid
               const lockOverlayHTML = isLocked ? `
                   <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-6 text-center z-40 backdrop-blur-sm">
                       <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 max-w-[280px]">
@@ -2640,49 +2563,47 @@
                   }
               });
 
-              // Fetch Creator profile photo for YT Shorts toolbar
               const ownerAvatar = (allUsersData[video.owner] ? allUsersData[video.owner].avatar : null) || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + video.owner;
+              
+              const likesData = video.likes || {};
+              const likeCount = Object.keys(likesData).length;
+              const isLiked = currentUser && likesData[currentUser];
+              const likeColor = isLiked ? '#ef4444' : '#ffffff';
+              const likeClass = isLiked ? 'liked' : '';
 
               shortsContainer.insertAdjacentHTML('beforeend', `
                   <div id="reel-card-${video.key}" class="w-full h-[100dvh] snap-start relative flex-shrink-0 bg-black flex items-center justify-center" onclick="togglePlayPauseReel(this)">
                       ${mediaHTML}
                       ${lockOverlayHTML}
                       
-                      <!-- YouTube Shorts Style Right Actions Sidebar -->
                       <div class="absolute right-4 bottom-28 flex flex-col items-center gap-5 z-50">
-                          <!-- Profile/Avatar + Follow Toggle button -->
                           <div class="relative flex flex-col items-center mb-1">
                               <img src="${ownerAvatar}" class="w-12 h-12 rounded-full border-2 border-pink-500 object-cover cursor-pointer" onclick="event.stopPropagation(); openCreatorProfile('${video.owner}')">
                               <button onclick="event.stopPropagation(); toggleFollow('${video.owner}')" class="reel-follow-btn absolute -bottom-1 bg-pink-500 text-white rounded-full w-5 h-5 flex items-center justify-center border border-white text-[12px] shadow">+</button>
                           </div>
                           
-                          <!-- Like (Heart) Button -->
-                          <button onclick="event.stopPropagation(); likeVideo('${video.key}', this)" class="flex flex-col items-center text-white transition transform active:scale-90">
-                              <span class="material-symbols-outlined text-[32px] drop-shadow-md">favorite</span>
-                              <span class="like-count text-[11px] font-bold mt-0.5 drop-shadow-md">452</span>
+                          <button onclick="event.stopPropagation(); likeVideo('${video.key}', this)" class="flex flex-col items-center text-white transition transform active:scale-90 ${likeClass}">
+                              <span class="material-symbols-outlined text-[32px] drop-shadow-md" style="color: ${likeColor}">favorite</span>
+                              <span class="like-count text-[11px] font-bold mt-0.5 drop-shadow-md">${likeCount}</span>
                           </button>
 
-                          <!-- Support Creator (Gift 10 Diamonds) Button -->
                           <button onclick="event.stopPropagation(); giftDiamonds('${video.owner}', 10)" class="flex flex-col items-center text-white bg-purple-600/80 p-2 rounded-full border border-purple-400 shadow transform active:scale-95 transition-transform">
                               <span class="material-symbols-outlined text-[20px]">diamond</span>
                               <span class="text-[9px] font-bold mt-0.5 whitespace-nowrap">Gift 10</span>
                           </button>
 
-                          <!-- Share Button -->
                           <button class="flex flex-col items-center text-white" onclick="event.stopPropagation(); alert('Share Link Copied!')">
                               <span class="material-symbols-outlined text-[30px] drop-shadow-md">share</span>
                               <span class="text-[11px] font-bold mt-0.5 drop-shadow-md">Share</span>
                           </button>
                       </div>
 
-                      <!-- Video Details Overlay Bottom Left -->
                       <div class="absolute bottom-[100px] left-0 w-[75%] p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col pointer-events-auto z-40">
                           <h4 class="text-white font-extrabold text-sm flex items-center gap-1">@${video.owner} <span class="material-symbols-outlined text-[14px] text-yellow-400">verified</span></h4>
-                          <p class="text-white text-xs mt-1 opacity-90">${video.title}</p>
+                          <p class="text-white text-xs mt-1 opacity-90 drop-shadow-sm">${video.title}</p>
                           ${video.price > 0 ? `<span class="mt-2 w-max inline-flex items-center gap-1 bg-purple-600/50 text-white border border-purple-500 px-2 py-0.5 rounded text-[10px] font-bold">💎 ${video.price} Premium</span>` : '<span class="mt-2 w-max inline-flex items-center gap-1 bg-green-600/50 text-green-300 border border-green-500 px-2 py-0.5 rounded text-[10px] font-bold">🎬 Free YT Reel</span>'}
                       </div>
 
-                      <!-- Mute/Unmute Volume Controller -->
                       ${!isLocked && !video.isYt ? `
                       <button class="absolute bottom-28 left-4 z-50 w-11 h-11 rounded-full bg-black/40 backdrop-blur border border-white/20 text-white flex items-center justify-center transition active:scale-90" onclick="toggleReelVolume(event, this)">
                           <span class="material-symbols-outlined text-[22px]">volume_off</span>
@@ -2695,7 +2616,6 @@
       }
   };
 
-  // Paid video unlock logic
   window.requestVideoUnlock = function(key, cost, owner) {
       document.getElementById('paywall-cost-display').innerText = cost;
       document.getElementById('video-paywall-modal').classList.remove('hidden');
@@ -2703,10 +2623,7 @@
       
       document.getElementById('paywall-unlock-btn').onclick = async () => {
           let viewerDiamonds = parseInt(localStorage.getItem('zingoo_diamonds') || '0');
-          if(viewerDiamonds < cost) {
-              showCustomAlert(`Insufficient diamonds. You need 💎 ${cost} to unlock.`);
-              return;
-          }
+          if(viewerDiamonds < cost) { showCustomAlert(`Insufficient diamonds. You need 💎 ${cost} to unlock.`); return; }
 
           document.getElementById('video-paywall-modal').classList.add('hidden');
           
@@ -2729,9 +2646,7 @@
       };
   };
 
-  window.closeVideoPaywall = function() {
-      document.getElementById('video-paywall-modal').classList.add('hidden');
-  };
+  window.closeVideoPaywall = function() { document.getElementById('video-paywall-modal').classList.add('hidden'); };
 
   window.toggleReelVolume = function(e, btn) {
       e.stopPropagation();
@@ -2744,27 +2659,93 @@
       }
   };
 
-  // --- Dynamic Trending Reels ---
-  onValue(ref(db, 'videos'), (snapshot) => {
-      const container = document.getElementById('home-reels-list');
-      container.innerHTML = '';
-      if(snapshot.exists()) {
-          Object.entries(snapshot.val()).slice(0, 8).forEach(([key, val]) => {
+  // --- Dynamic Trending Reels & Category Grid Layout ---
+  window.openReelsGridOverlay = function() {
+      document.getElementById('reels-grid-overlay').style.display = 'flex';
+      document.getElementById('bottom-nav').style.display = 'none';
+      renderReelsGrid('all');
+  };
+
+  window.renderReelsGrid = function(filter) {
+      const btns = ['rg-btn-all', 'rg-btn-free', 'rg-btn-paid'];
+      btns.forEach(id => {
+          const btn = document.getElementById(id);
+          if(btn) btn.className = "px-4 py-1.5 bg-white text-gray-700 border border-gray-200 rounded-full text-xs font-bold shrink-0 shadow-sm flex items-center gap-1";
+      });
+      const activeBtn = document.getElementById(`rg-btn-${filter}`);
+      if(activeBtn) activeBtn.className = "px-4 py-1.5 bg-black text-white rounded-full text-xs font-bold shrink-0 shadow flex items-center gap-1";
+
+      const container = document.getElementById('reels-grid-container');
+      container.innerHTML = '<p class="col-span-3 text-center text-gray-400 py-10 text-xs">Loading...</p>';
+
+      get(ref(db, 'videos')).then((snap) => {
+          container.innerHTML = '';
+          if(!snap.exists()) {
+              container.innerHTML = '<p class="col-span-3 text-center text-gray-400 py-10 text-xs">No reels found.</p>';
+              return;
+          }
+          let videos = [];
+          snap.forEach(child => { videos.push({key: child.key, ...child.val()}); });
+
+          if (filter === 'paid') videos = videos.filter(v => v.price > 0);
+          if (filter === 'free') videos = videos.filter(v => !v.price || v.price === 0);
+
+          videos.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+          if(videos.length === 0) {
+              container.innerHTML = '<p class="col-span-3 text-center text-gray-400 py-10 text-xs">No reels in this category.</p>';
+              return;
+          }
+
+          videos.forEach(v => {
+              const isPaid = v.price > 0;
+              const badge = isPaid ? `<div class="absolute top-1 right-1 bg-purple-600/90 text-white text-[8px] font-bold px-1 py-0.5 rounded shadow">💎</div>` : '';
               container.insertAdjacentHTML('beforeend', `
-                  <div class="relative w-28 h-40 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer shadow-sm transform hover:scale-105 transition-transform" onclick="openVideoFeed('shorts')">
-                      <img src="${val.thumbnailUrl}" class="w-full h-full object-cover">
-                      <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-1.5">
-                          <p class="text-white text-[9px] truncate font-bold">${val.title}</p>
+                  <div class="relative w-full aspect-[9/16] bg-black rounded-xl overflow-hidden cursor-pointer transform hover:scale-[1.02] transition-transform shadow-sm" onclick="openVideoFeed('shorts', '${v.key}')">
+                      <img src="${v.thumbnailUrl}" class="w-full h-full object-cover opacity-90">
+                      ${badge}
+                      <div class="absolute bottom-0 w-full p-2 bg-gradient-to-t from-black/90 to-transparent">
+                          <p class="text-white text-[9px] font-bold truncate drop-shadow-sm">${v.title}</p>
                       </div>
                   </div>
               `);
           });
-      } else {
-          container.innerHTML = '<p class="text-gray-400 text-xs">No reels uploaded yet.</p>';
-      }
-  });
+      });
+  };
 
-  // Creator studio uploads list
+  window.loadHomeReels = function() {
+      const filterEl = document.getElementById('home-reels-filter');
+      const filter = filterEl ? filterEl.value : 'all';
+      get(ref(db, 'videos')).then((snapshot) => {
+          const container = document.getElementById('home-reels-list');
+          container.innerHTML = '';
+          if(snapshot.exists()) {
+              let videos = [];
+              snapshot.forEach(child => { videos.push({key: child.key, ...child.val()}); });
+
+              if(filter === 'free') videos = videos.filter(v => !v.price || v.price === 0);
+              if(filter === 'paid') videos = videos.filter(v => v.price > 0);
+
+              videos.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+              videos.slice(0, 8).forEach(val => {
+                  container.insertAdjacentHTML('beforeend', `
+                      <div class="relative w-28 h-40 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer shadow-sm transform hover:scale-105 transition-transform" onclick="openVideoFeed('shorts', '${val.key}')">
+                          <img src="${val.thumbnailUrl}" class="w-full h-full object-cover">
+                          ${val.price > 0 ? `<div class="absolute top-1 right-1 bg-purple-600 text-white text-[8px] px-1 py-0.5 rounded shadow">💎</div>` : ''}
+                          <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-1.5">
+                              <p class="text-white text-[9px] truncate font-bold">${val.title}</p>
+                          </div>
+                      </div>
+                  `);
+              });
+              if(videos.length === 0) { container.innerHTML = '<p class="text-gray-400 text-xs py-4">No reels match filter.</p>'; }
+          } else {
+              container.innerHTML = '<p class="text-gray-400 text-xs py-4">No reels uploaded yet.</p>';
+          }
+      });
+  };
+
   window.openUploadOverlay = function() {
       document.getElementById('upload-video-overlay').classList.remove('hidden');
       document.body.style.overflow = 'hidden';
@@ -2801,14 +2782,9 @@
       document.body.style.overflow = 'auto';
   };
 
-  window.openVideoUploadForm = function() {
-      document.getElementById('upload-form-sub-overlay').classList.remove('hidden');
-  };
-  window.closeVideoUploadForm = function() {
-      document.getElementById('upload-form-sub-overlay').classList.add('hidden');
-  };
+  window.openVideoUploadForm = function() { document.getElementById('upload-form-sub-overlay').classList.remove('hidden'); };
+  window.closeVideoUploadForm = function() { document.getElementById('upload-form-sub-overlay').classList.add('hidden'); };
 
-  // --- External Diamond Store Purchase Redirection ---
   window.buyDiamondPack = function(amount, diamonds) {
       if(!currentUser) { alert("Please login first!"); return; }
       const payUrl = `https://inhimanshukumar4560-byte.github.io/Iccha/zingoo-pay.html?from=zingoo&username=${encodeURIComponent(currentUser)}&amount=${amount}&diamonds=${diamonds}`;
