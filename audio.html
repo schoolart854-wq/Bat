@@ -543,7 +543,7 @@
         .close-btn:hover { background: #e0e0e0; }
         @keyframes slideUpModal { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
-        #footer-action-modal .modal-content { padding: 20px 20px 30px; }
+        #footer-action-modal .modal-content { padding: 20px 20px 30px; max-height: 80vh; overflow-y: auto; }
         #footer-action-modal .action-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
         .action-item { display: flex; flex-direction: row; align-items: center; gap: 15px; cursor: pointer; background: #f9f9f9; padding: 12px 15px; border-radius: 15px; transition: all 0.2s ease; border: 1px solid transparent; }
         .action-item:hover { background-color: #fff0f2; border-color: rgba(255,0,76,0.2); transform: translateY(-2px); }
@@ -1008,7 +1008,7 @@
     <!-- Firebase SDK Setup (Modular Web SDK Version 10.8.0 linked securely to Zingoo project database) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, serverTimestamp, set, remove, get, onChildAdded, update, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, serverTimestamp, set, remove, get, onChildAdded, update, query, orderByChild, equalTo, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         let app;
         let db;
@@ -1253,9 +1253,27 @@
                 idLoginScreen.style.display = 'flex';
             });
 
+            // CENTRALIZED ROOM EXIT HANDLER
+            function handleRoomExit() {
+                if (currentActiveRoomId && currentRoomHost === currentUser) {
+                    const hostLeaveChoice = confirm("Host Options:\n\nClick OK to End & Delete the Room for everyone.\nClick Cancel to just exit / Leave the room (active for others).");
+                    if (hostLeaveChoice) {
+                        remove(ref(db, `audio_rooms/${currentActiveRoomId}`)).then(() => {
+                            showToast("Room successfully deleted.");
+                            leaveCurrentRoom();
+                        });
+                    } else {
+                        onDisconnect(ref(db, `audio_rooms/${currentActiveRoomId}`)).cancel();
+                        leaveCurrentRoom();
+                    }
+                } else {
+                    leaveCurrentRoom();
+                }
+            }
+
             // ROOM BACK BUTTON LOGIC
             document.getElementById('room-back-icon-btn').addEventListener('click', () => {
-                leaveCurrentRoom();
+                handleRoomExit();
             });
 
             function listenForInvites() {
@@ -2058,7 +2076,19 @@
 
                         // Listen to dynamic live changes in title & bio
                         onValue(ref(db, `audio_rooms/${roomId}/bio`), (snap) => {
-                            document.getElementById('live-room-bio').innerText = snap.val() || "No description set.";
+                            const bioVal = snap.val();
+                            document.getElementById('live-room-bio').innerText = bioVal || "Chill Vibes Only";
+                            
+                            // Live Guidelines Card Custom Bio Syncing
+                            const guidelinesP = document.querySelector('.guidelines-card p');
+                            if (guidelinesP) {
+                                const defaultText = "Welcome to Zingoo Audio Room! This room is being monitored. Please abide by the guidelines, do note that all consequences are to your own account";
+                                if (bioVal && bioVal.trim() !== "" && bioVal !== "Chill Vibes Only") {
+                                    guidelinesP.innerHTML = `${defaultText}<br><br><strong>Room Bio:</strong> ${bioVal}`;
+                                } else {
+                                    guidelinesP.innerHTML = defaultText;
+                                }
+                            }
                         });
                         onValue(ref(db, `audio_rooms/${roomId}/name`), (snap) => {
                             document.getElementById('live-room-title').innerText = snap.val() || "Zingoo Room";
@@ -2284,6 +2314,7 @@
                         frameUrl: myEquippedFrame,
                         iconUrl: myEquippedIcon
                     }).then(() => {
+                        onDisconnect(seatRef).remove(); // Clears seat on disconnection or exit automatically
                         push(ref(db, `audio_rooms/${currentActiveRoomId}/chats`), {
                             user: currentUser,
                             text: 'took a seat.',
@@ -2294,14 +2325,26 @@
                     });
                 },
                 leaveSeat: () => {
-                    if (!currentActiveRoomId || mySeatIndex === -1) return;
-                    const seatRef = ref(db, `audio_rooms/${currentActiveRoomId}/seats/${mySeatIndex}`);
-                    remove(seatRef);
+                    if (!currentActiveRoomId) return;
+                    const seatsRef = ref(db, `audio_rooms/${currentActiveRoomId}/seats`);
+                    get(seatsRef).then(snap => {
+                        const seats = snap.val();
+                        if (seats) {
+                            Object.entries(seats).forEach(([idx, seat]) => {
+                                if (seat.user === currentUser) {
+                                    const sRef = ref(db, `audio_rooms/${currentActiveRoomId}/seats/${idx}`);
+                                    onDisconnect(sRef).cancel();
+                                    remove(sRef);
+                                }
+                            });
+                        }
+                    });
+                    mySeatIndex = -1;
                 }
             };
             
             function leaveCurrentRoom() {
-                if (mySeatIndex !== -1) {
+                if (mySeatIndex !== -1 || currentActiveRoomId) {
                     window.audioRoomAPI.leaveSeat();
                 }
                 if (roomListener) { roomListener(); roomListener = null; }
@@ -2323,20 +2366,7 @@
 
             // Close Room Handler with Admin/Host Rights Option
             document.getElementById('close-room-btn').addEventListener('click', () => {
-                if (currentRoomHost === currentUser) {
-                    // Host Options Modal
-                    const hostLeaveChoice = confirm("Host Options:\n\nClick OK to End & Delete the Room for everyone.\nClick Cancel to just exit / Leave the room (active for others).");
-                    if (hostLeaveChoice) {
-                        remove(ref(db, `audio_rooms/${currentActiveRoomId}`)).then(() => {
-                            showToast("Room successfully deleted.");
-                            leaveCurrentRoom();
-                        });
-                    } else {
-                        leaveCurrentRoom();
-                    }
-                } else {
-                    leaveCurrentRoom();
-                }
+                handleRoomExit();
             });
 
             function sendRoomMessage() {
@@ -2433,6 +2463,8 @@
                             createdAt: serverTimestamp(),
                             seats: {}
                         }).then(() => {
+                            onDisconnect(newRoomRef).remove(); // Auto deletes room inside database if host goes offline unexpectedly
+                            
                             pendingInvites.forEach(user => {
                                 push(ref(db, `invites/${user}`), {
                                     sender: currentUser,
